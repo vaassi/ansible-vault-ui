@@ -128,7 +128,7 @@ fn check_password(s: &mut Cursive) {
                 "Help",
                 menu::Tree::new()
                     .leaf("About", |s| {
-                        s.add_layer(Dialog::info("Ansible-Vault UI v0.1.0"))
+                        s.add_layer(Dialog::info("Ansible-Vault UI v0.2.0"))
                     }),
             );
     }
