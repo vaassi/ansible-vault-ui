@@ -4,8 +4,8 @@
 
 Ansible-Vault-UI is a TUI (Text User Interface) for ansible-vault command-line tool written in rust.
 
-[![Product ScreenShot 1][product-screenshot-1]]
-[![Product ScreenShot 2][product-screenshot-2]]
+![Ansible-Vault-UI][product-screenshot-1]
+![Ansible-Vault-UI][product-screenshot-2]
 
 ## Usage
 Application have hotkeys:
@@ -48,5 +48,5 @@ Don't forget to give the project a star! Thanks again!
 ## License
 Distributed under the MIT License. See `LICENSE.txt` for more information.
 
-[product-screenshot-1]: https://github.com/vaassi/ansible-vault-ui/images/screenshot1.png
-[product-screenshot-1]: https://github.com/vaassi/ansible-vault-ui/images/screenshot2.png
+[product-screenshot-1]: images/screenshot1.png
+[product-screenshot-2]: images/screenshot2.png
