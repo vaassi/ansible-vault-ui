@@ -18,24 +18,20 @@ mod ansible;
 const VIEW_ID_CONTENT: &str = "content";
 const VIEW_ID_SELECT: &str = "select";
 
+#[derive(Default)]
 struct Data {
     password: String,
     prev_path: PathBuf,
     path: PathBuf,
     content: String,
     selected_id: usize,
+    directory: String,
 }
 
 fn main() {
     let mut siv = cursive::default();
 
-    siv.set_user_data(Data {
-        password: String::new(),
-        prev_path: PathBuf::new(),
-        path: PathBuf::new(),
-        content: String::new(),
-        selected_id: 0,
-    });
+    siv.set_user_data(Data::default());
 
     siv.add_global_callback('q', Cursive::quit);
     siv.add_global_callback(Key::Esc, |s| s.select_menubar());
@@ -81,14 +77,36 @@ fn check_password(s: &mut Cursive) {
                                 .content(
                                     EditView::new()
                                         .on_submit(|s, text| {
+                                            s.with_user_data(|data: &mut Data| {
+                                                data.directory = text.to_owned();
+                                            });
+
                                             s.pop_layer();
                                             s.add_fullscreen_layer(LinearLayout::horizontal()
                                                 .child(
-                                                    Panel::new(ResizedView::new(
-                                                        SizeConstraint::AtLeast(50),
-                                                        SizeConstraint::Full,
-                                                        file_picker(text).unwrap(),
-                                                    )).title("File Browser")
+                                                    Panel::new(
+                                                        LinearLayout::vertical()
+                                                            .child(
+                                                                ResizedView::new(
+                                                                    SizeConstraint::AtLeast(50),
+                                                                    SizeConstraint::Full,
+                                                                    file_picker(text).unwrap(),
+                                                                )
+                                                            )
+                                                            .child(
+                                                                LinearLayout::horizontal()
+                                                                    .child(
+                                                                        TextView::new("Filter: ")
+                                                                    )
+                                                                    .child(
+                                                                        ResizedView::new(
+                                                                            SizeConstraint::AtLeast(40),
+                                                                            SizeConstraint::Free,
+                                                                            EditView::new()
+                                                                                .on_submit(apply_filter),
+                                                                        ))
+                                                            )
+                                                    ).title("File Browser")
                                                 )
                                                 .child(
                                                     Panel::new(ResizedView::new(
@@ -119,13 +137,19 @@ fn check_password(s: &mut Cursive) {
 fn file_picker<D: AsRef<Path>>(directory: D) -> Result<NamedView<SelectView<PathBuf>>> {
     let mut select = SelectView::new();
 
-    let parent = PathBuf::new();
-    select.add_item(".", parent);
+    select.add_item(".", PathBuf::new());
+    fill_items(&mut select, directory, "")?;
 
+    Ok(select.on_select(check_content).with_name(VIEW_ID_SELECT))
+}
+
+fn fill_items<D: AsRef<Path>>(select: &mut SelectView<PathBuf>, directory: D, filter: &str) -> Result<()> {
     for entry in fs::read_dir(directory)?.flatten() {
         let path = entry.path();
-        // filter only files
+
+        // filter files
         if path.is_file() && !(path.extension().is_some() && path.extension().unwrap() == "bkp") {
+            // add * to encrypted files
             let file = File::open(&path)?;
             let mut encrypted = "";
             if let Some(line) = BufReader::new(&file).lines().next() {
@@ -135,11 +159,27 @@ fn file_picker<D: AsRef<Path>>(directory: D) -> Result<NamedView<SelectView<Path
                 }
             }
 
-            select.add_item(format!("{}{}", entry.file_name().into_string().unwrap(), encrypted), entry.path())
+            if filter.is_empty() {
+                select.add_item(format!("{}{}", entry.file_name().into_string().unwrap(), encrypted), path)
+            } else {
+                if path.file_name().and_then(OsStr::to_str).unwrap().contains(filter) {
+                    select.add_item(format!("{}{}", entry.file_name().into_string().unwrap(), encrypted), path)
+                }
+            }
         }
     }
 
-    Ok(select.on_select(check_content).with_name(VIEW_ID_SELECT))
+    Ok(())
+}
+
+fn apply_filter(s: &mut Cursive, filter: &str) {
+    let directory = s.user_data::<Data>().unwrap().directory.clone();
+
+    s.call_on_name(VIEW_ID_SELECT, |v: &mut SelectView<PathBuf>| {
+        v.clear();
+        v.add_item(".", PathBuf::new());
+        fill_items(v, directory, filter)
+    });
 }
 
 fn check_content(s: &mut Cursive, path: &PathBuf) {

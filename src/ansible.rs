@@ -160,10 +160,10 @@ pub fn encrypt<T: Read>(mut input: T, key: &str) -> Result<String> {
 }
 
 /// Encrypt a file to an ansible_vault string
-pub fn encrypt_vault_from_file<P: AsRef<Path>>(path: P, key: &str) -> Result<String> {
-    let f = File::open(path)?;
-    encrypt_vault(f, key)
-}
+// pub fn encrypt_vault_from_file<P: AsRef<Path>>(path: P, key: &str) -> Result<String> {
+//     let f = File::open(path)?;
+//     encrypt_vault(f, key)
+// }
 
 #[cfg(test)]
 mod tests {
