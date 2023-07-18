@@ -1,0 +1,18 @@
+[package]
+name = "ansible-vault-ui"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cursive = "0.20"
+anyhow = "1.0"
+hmac = "0.12"
+sha2 = "0.10"
+pbkdf2 = "0.12"
+aes = "0.8"
+ctr = "0.9"
+block-padding = "0.3"
+hex = "0.4"
+rand = "0.8"
